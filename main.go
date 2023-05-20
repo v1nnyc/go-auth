@@ -1,9 +1,12 @@
 package main
 
 import (
+	// "encoding/json"
+	// "fmt"
+	// "log"
 	"encoding/json"
 	"fmt"
-	"log"
+	"net/http"
 )
 
 type Person struct {
@@ -11,31 +14,31 @@ type Person struct {
 }
 
 func main() {
+	http.HandleFunc("/encode", foo)
+	http.HandleFunc("/decode", bar)
+	http.ListenAndServe(":8080", nil)
+}
+
+func foo(w http.ResponseWriter, r *http.Request) {
 	p1 := Person{
 		First: "vincent",
 	}
 
-	p2 := Person{
-		First: "gabe",
-	}
-
-	xp := []Person{p1, p2}
-
-	bs, err := json.Marshal(xp)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	fmt.Printf("json printing: %v\n", string(bs))
-
-	xp2 := []Person{}
-
-	err = json.Unmarshal(bs, &xp2)
+	encoder := json.NewEncoder(w)
+	err := encoder.Encode(p1)
 
 	if err != nil {
-		log.Panic(err)
+		fmt.Printf("err: %v\n", err)
+	}
+}
+func bar(w http.ResponseWriter, r *http.Request) {
+	var xp []Person
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&xp)
+
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
 	}
 
-	fmt.Printf("xp2: %v\n", xp2)
-
+	fmt.Printf("xp: %v\n", xp)
 }
